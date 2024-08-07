@@ -3,7 +3,6 @@ import { Link, NavLink, Outlet } from "react-router-dom";
 import styles from "./Layout.module.css";
 
 import searchLogo from "../../assets/search.svg";
-import githubLogo from "../../assets/github.svg";
 
 export const Layout = () => {
     return (
@@ -12,7 +11,7 @@ export const Layout = () => {
                 <div className={styles.headerContainer}>
                     <Link to="/" className={styles.headerTitleContainer}>
                         <img src={searchLogo} alt="Azure Cognitive Search logo" className={styles.headerLogo} />
-                        <h3 className={styles.headerTitle}>Vector Search Comparision Tool</h3>
+                        <h3 className={styles.headerTitle}>Search Comparision Tool</h3>
                     </Link>
                     <nav>
                         <ul className={styles.headerNavList}>
@@ -21,32 +20,13 @@ export const Layout = () => {
                                     Text
                                 </NavLink>
                             </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <NavLink to="/image" className={({ isActive }) => (isActive ? styles.headerNavPageLinkActive : styles.headerNavPageLink)}>
-                                    Image
-                                </NavLink>
-                            </li>
-                            <li className={styles.headerNavLeftMargin}>
-                                <a
-                                    href="https://github.com/Azure-Samples/azure-search-comparison-tool"
-                                    target={"_blank"}
-                                    title="Github repository link"
-                                    rel="noreferrer"
-                                >
-                                    <img src={githubLogo} alt="Github logo" aria-label="Link to github repository" className={styles.githubLogo} />
-                                </a>
-                            </li>
                         </ul>
                     </nav>
-                    <h4 className={styles.headerRightText}>Azure AI services</h4>
                 </div>
             </header>
             <div className={styles.content}>
                 <Outlet />
             </div>
-            <footer className={styles.footer}>
-                Made with <span className={styles.heart}>❤️</span> by the Azure Cognitive Search Product Group
-            </footer>
         </div>
     );
 };

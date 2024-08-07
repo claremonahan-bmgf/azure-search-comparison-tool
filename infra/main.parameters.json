@@ -11,53 +11,20 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "principalId": {
-      "value": "${AZURE_PRINCIPAL_ID}"
-    },
     "openAiServiceName": {
       "value": "${AZURE_OPENAI_SERVICE}"
-    },
-    "openAiResourceGroupName": {
-      "value": "${AZURE_OPENAI_RESOURCE_GROUP}"
-    },
-    "openAiSkuName": {
-      "value": "S0"
-    },
-    "visionAiServiceName": {
-      "value": "${AZURE_VISIONAI_SERVICE}"
-    },
-    "visionAiResourceGroupName": {
-      "value": "${AZURE_VISIONAI_RESOURCE_GROUP}"
     },
     "searchServiceName": {
       "value": "${AZURE_SEARCH_SERVICE}"
     },
-    "searchServiceResourceGroupName": {
-      "value": "${AZURE_SEARCH_SERVICE_RESOURCE_GROUP}"
+    "searchServiceEndpoint": {
+      "value": "${AZURE_SEARCH_SERVICE_ENDPOINT}"
     },
-    "searchServiceSkuName": {
-      "value": "standard"
+    "searchInvestmentIndexPrevName": {
+      "value": "${AZURE_SEARCH_INVESTMENT_INDEX_NAME_PREV}"
     },
-    "searchTextIndexName": {
-      "value": "${AZURE_SEARCH_TEXT_INDEX=vectortextindex}"
-    },
-    "searchImageIndexName": {
-      "value": "${AZURE_SEARCH_IMAGE_INDEX=vectorimageindex}"
-    },
-    "searchWikipediaIndexName": {
-      "value": "${AZURE_SEARCH_WIKIPEDIA_INDEX=vectorwikipediaindex}"
-    },
-    "storageAccountName": {
-      "value": "${AZURE_STORAGE_ACCOUNT}"
-    },
-    "storageResourceGroupName": {
-      "value": "${AZURE_STORAGE_RESOURCE_GROUP}"
-    },
-    "storageContainerName": {
-      "value": "${AZURE_STORAGE_CONTAINER=images}"
-    },
-    "createRoleForUser": {
-      "value": "${CREATE_ROLE_FOR_USER=true}"
+    "searchInvestmentIndexCurrName": {
+      "value": "${AZURE_SEARCH_INVESTMENT_INDEX_NAME_CURR}"
     }
   }
 }

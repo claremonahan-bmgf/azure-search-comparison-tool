@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
 
-name: acs-vector-search-demo
+name: search-side-by-side
 services:
   backend:
     project: ./app/backend

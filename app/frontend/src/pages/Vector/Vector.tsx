@@ -8,13 +8,12 @@ import { TextSearchResult, Approach, ResultCard, ApproachKey, AxiosErrorResponse
 import { getEmbeddings, getTextSearchResults } from "../../api/textSearch";
 import SampleCard from "../../components/SampleCards";
 import { AxiosError } from "axios";
-import { getEfSearch, updateEfSearch } from "../../api/indexSchema";
 
 const MaxSelectedModes = 4;
 
 const Vector: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState<string>("");
-    const [textQueryVector, setTextQueryVector] = useState<number[]>([]);
+    // const [textQueryVector, setTextQueryVector] = useState<number[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
     const [resultCards, setResultCards] = useState<ResultCard[]>([]);
     const [isConfigPanelOpen, setIsConfigPanelOpen] = useState<boolean>(false);
@@ -22,10 +21,10 @@ const Vector: React.FC = () => {
     const [useSemanticCaptions, setUseSemanticCaptions] = useState<boolean>(false);
     const [hideScores, setHideScores] = React.useState<boolean>(true);
     const [errors, setErrors] = React.useState<string[]>([]);
-    const [efSearchInSchema, setEfSearchInSchema] = React.useState<string>("");
-    const [efSearch, setEfSearch] = React.useState<string>("");
+    const [nearestNeighborSearch, setNearestNeighborSearch] = React.useState<number>(5);
+    const [viewResultsCount, setViewResultsCount] = React.useState<number>(10);
     const [validationError, setValidationError] = React.useState<string>("");
-    const [selectedDatasetKey, setSelectedDatasetKey] = React.useState<string>("sample");
+    const [selectedDatasetKey, setSelectedDatasetKey] = React.useState<string>("investment-20240726");
 
     const approaches: Approach[] = useMemo(
         () => [
@@ -39,37 +38,26 @@ const Vector: React.FC = () => {
 
     const Datasets: IDropdownOption[] = useMemo(
         () => [
-            { key: "sample", text: "Azure Services", title: "Sample text data" },
-            { key: "wikipedia", text: "Wikipedia Articles", title: "Wikipedia articles data" }
+            { key: "investment-20240611-2", text: "Investment-20240611", title: "Investment Index" },
+            { key: "investment-20240726", text: "Investment-20240726", title: "Investment Index" }
+            // { key: "organization-20240611", text: "Organization-20240611", title: "Organization Index" },
+            // { key: "organization-20240726", text: "Organization-20240726", title: "Organization Index" }
         ],
         []
     );
 
     let sampleQueries: string[] = [];
-    if (selectedDatasetKey === "sample") {
-        sampleQueries = ["tools for software development", "herramientas para el desarrollo de software", "scalable storage solution"];
-    } else if (selectedDatasetKey === "wikipedia") {
-        sampleQueries = ["species of tigers", "world history", "global delicious food"];
+    if (selectedDatasetKey.includes("investment")) {
+        sampleQueries = ["data collectors in Rwanda", "partners who work on vaccine development", "policy and advocacy partners in India"];
+    } else if (selectedDatasetKey.includes("organization")) {
+        sampleQueries = ["Organizations who work on vaccine development", "Forcasting partners in Central America", "Public awareness grantees"];
     }
 
     useEffect(() => {
         if (searchQuery === "") {
             setResultCards([]);
         }
-
-        if (efSearchInSchema === "") {
-            const getEfSearchInSchema = async () => {
-                try {
-                    const currentEfSearch = await getEfSearch();
-                    setEfSearchInSchema(currentEfSearch);
-                    setEfSearch(currentEfSearch);
-                } catch (e) {
-                    setErrors([`Failed to get efSearch value ${String(e)}`]);
-                }
-            };
-            void getEfSearchInSchema();
-        }
-    }, [efSearch, efSearchInSchema, searchQuery]);
+    }, [searchQuery]);
 
     const executeSearch = useCallback(
         async (query: string) => {
@@ -77,7 +65,7 @@ const Vector: React.FC = () => {
                 setResultCards([]);
                 return;
             }
-            setTextQueryVector([]);
+            // setTextQueryVector([]);
             setLoading(true);
 
             let searchApproachKeys = selectedApproachKeys;
@@ -90,22 +78,10 @@ const Vector: React.FC = () => {
             let searchErrors: string[] = [];
             let queryVector: number[] = [];
 
-            if (Number(efSearch) !== Number(efSearchInSchema)) {
-                try {
-                    const newEfSearch = await updateEfSearch(efSearch);
-                    setEfSearchInSchema(newEfSearch);
-                } catch (e) {
-                    searchErrors = searchErrors.concat(`Failed to update efSearch value ${String(e)}`);
-                    setErrors(searchErrors);
-                    setLoading(false);
-                    return;
-                }
-            }
-
             if (!(searchApproachKeys.length === 1 && searchApproachKeys[0] === "text")) {
                 try {
                     queryVector = await getEmbeddings(query);
-                    setTextQueryVector(queryVector);
+                    // setTextQueryVector(queryVector);
                 } catch (e) {
                     searchErrors = searchErrors.concat(`Failed to generate embeddings ${String(e)}`);
                     setErrors(searchErrors);
@@ -116,11 +92,21 @@ const Vector: React.FC = () => {
 
             Promise.allSettled(
                 searchApproachKeys.map(async approachKey => {
-                    const results = await getTextSearchResults(approachKey, query, useSemanticCaptions, selectedDatasetKey, queryVector);
+                    const results = await getTextSearchResults(
+                        approachKey,
+                        query,
+                        useSemanticCaptions,
+                        selectedDatasetKey,
+                        queryVector,
+                        nearestNeighborSearch,
+                        viewResultsCount
+                    );
                     const searchResults = results.results;
+                    const resultCount = results.count;
                     const resultCard: ResultCard = {
                         approachKey,
-                        searchResults
+                        searchResults,
+                        resultCount
                     };
                     return resultCard;
                 })
@@ -142,7 +128,7 @@ const Vector: React.FC = () => {
                     setLoading(false);
                 });
         },
-        [selectedApproachKeys, efSearch, efSearchInSchema, useSemanticCaptions, selectedDatasetKey]
+        [selectedApproachKeys, nearestNeighborSearch, useSemanticCaptions, selectedDatasetKey, viewResultsCount]
     );
 
     const handleOnKeyDown = useCallback(
@@ -179,22 +165,34 @@ const Vector: React.FC = () => {
         setUseSemanticCaptions(!!checked);
     }, []);
 
-    const onEfSearchChanged = React.useCallback(
+    const onNearestNeighborSearchChanged = React.useCallback(
         (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, value?: string) => {
             const numberValue = Number(value);
             if (!!value && isNaN(numberValue)) {
                 event.preventDefault();
             } else {
-                setEfSearch(value ?? efSearchInSchema);
-                numberValue > 1000 || numberValue < 100 ? setValidationError("The allowable range is 100 to 1000.") : setValidationError("");
+                setNearestNeighborSearch(numberValue ?? nearestNeighborSearch);
+                numberValue > 100 || numberValue < 1 ? setValidationError("The allowable range is 1 to 100.") : setValidationError("");
             }
         },
-        [efSearchInSchema]
+        [nearestNeighborSearch]
+    );
+
+    const onSetResultCountChanged = React.useCallback(
+        (event: React.FormEvent<HTMLInputElement | HTMLTextAreaElement>, value?: string) => {
+            const numberValue = Number(value);
+            if (!!value && isNaN(numberValue)) {
+                event.preventDefault();
+            } else {
+                setViewResultsCount(numberValue ?? viewResultsCount);
+            }
+        },
+        [viewResultsCount]
     );
 
     const onDatasetChange = React.useCallback((_event: React.FormEvent<HTMLDivElement>, item?: IDropdownOption): void => {
         setResultCards([]);
-        setSelectedDatasetKey(String(item?.key) ?? "sample");
+        setSelectedDatasetKey(String(item?.key) ?? "investment-20240726");
     }, []);
 
     return (
@@ -235,27 +233,37 @@ const Vector: React.FC = () => {
                             {resultCards.map(resultCard => (
                                 <div key={resultCard.approachKey} className={styles.resultCardContainer}>
                                     <p className={styles.approach}>{approaches.find(a => a.key === resultCard.approachKey)?.title} </p>
+                                    <p className={styles.approach}>Total Document Count: {resultCard.resultCount} </p>
                                     {!resultCard.searchResults.length && <p className={styles.searchResultCardTitle}>{"No results found"} </p>}
                                     {resultCard.searchResults.map((result: TextSearchResult) => (
                                         <Stack horizontal className={styles.searchResultCard} key={result.id}>
                                             <div className={styles.textContainer}>
                                                 <Stack horizontal horizontalAlign="space-between">
                                                     <div className={styles.titleContainer}>
-                                                        <p className={styles.searchResultCardTitle}>{result.title} </p>
-                                                        {selectedDatasetKey === "sample" && <p className={styles.category}>{result.category}</p>}
+                                                        <p className={styles.searchResultCardTitle}>{result.name} </p>
+                                                        {selectedDatasetKey.includes("investment") && (
+                                                            <p className={styles.category}>
+                                                                <b>InvestmentID:</b> {result.id}
+                                                            </p>
+                                                        )}
                                                     </div>
                                                     {!hideScores && (
                                                         <div className={styles.scoreContainer}>
-                                                            <p className={styles.score}>
-                                                                {`Score: ${
-                                                                    resultCard.approachKey === "hssr"
-                                                                        ? result["@search.reranker_score"]?.toFixed(3)
-                                                                        : result["@search.score"]?.toFixed(3)
-                                                                }`}
-                                                            </p>
+                                                            <p className={styles.score}>{`Score: ${result["@search.score"]?.toFixed(3)}`}</p>
+                                                            {resultCard.approachKey === "hssr" && (
+                                                                <p className={styles.score}>
+                                                                    {`Re-rank Score: ${result["@search.reranker_score"]?.toFixed(3)}`}
+                                                                </p>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </Stack>
+                                                <p
+                                                    className={styles.content}
+                                                    dangerouslySetInnerHTML={{
+                                                        __html: "ManagingTeam: " + result.managingTeam
+                                                    }}
+                                                />
                                                 <p
                                                     className={styles.content}
                                                     dangerouslySetInnerHTML={{
@@ -263,7 +271,7 @@ const Vector: React.FC = () => {
                                                             ? result["@search.captions"][0].highlights
                                                             : result["@search.captions"]?.[0].text
                                                             ? result["@search.captions"][0].text
-                                                            : result.content
+                                                            : result.descriptionContent
                                                     }}
                                                 />
                                             </div>
@@ -316,16 +324,29 @@ const Vector: React.FC = () => {
                         )}
                     </div>
                 ))}
-                <TextField className={styles.efSearch} label="efSearch" value={efSearch} onChange={onEfSearchChanged} errorMessage={validationError} />
+                <TextField
+                    className={styles.efSearch}
+                    label="Nearest Neighbors (100-1000)"
+                    value={nearestNeighborSearch.toString()}
+                    onChange={onNearestNeighborSearchChanged}
+                    errorMessage={validationError}
+                />
+                <TextField
+                    className={styles.efSearch}
+                    label="Number of Results to View (increasing will drop perf)"
+                    value={viewResultsCount.toString()}
+                    onChange={onSetResultCountChanged}
+                    errorMessage={validationError}
+                />
                 <Dropdown label="Dataset" selectedKey={selectedDatasetKey} onChange={onDatasetChange} options={Datasets} />
-                {textQueryVector && (
+                {/* {textQueryVector && (
                     <>
                         <p>Embedding model name:</p>
-                        <code className={styles.textQueryVectorModel}>openai text-embedding-ada-002</code>
+                        <code className={styles.textQueryVectorModel}>openai text-embedding-ada-003-large</code>
                         <p>Text query vector:</p>
                         <code className={styles.textQueryVector}>[{textQueryVector.join(", ")}]</code>
                     </>
-                )}
+                )} */}
             </Panel>
         </div>
     );

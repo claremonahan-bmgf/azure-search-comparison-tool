@@ -7,15 +7,15 @@ export const getTextSearchResults = async (
     useSemanticCaptions: boolean,
     dataSet?: string,
     queryVector?: number[],
-    select?: string,
-    k?: number
+    k?: number,
+    top?: number
 ): Promise<SearchResponse<TextSearchResult>> => {
     const requestBody: TextSearchRequest = {
         query: searchQuery,
-        select: select,
         vectorSearch: false,
         hybridSearch: false,
-        dataSet: dataSet
+        dataSet: dataSet,
+        top: top
     };
 
     if (approach === "vec" || approach === "hs" || approach === "hssr") {

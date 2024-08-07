@@ -9,7 +9,7 @@ export interface TextSearchRequest {
     query: string;
     vectorSearch?: boolean;
     hybridSearch?: boolean;
-    select?: string;
+    top?: number;
     k?: number;
     filter?: string;
     useSemanticRanker?: boolean;
@@ -25,6 +25,7 @@ export interface ImageSearchRequest {
 
 export interface SearchResponse<T extends SearchResult> {
     results: T[];
+    count: number;
 }
 
 interface SearchResult {
@@ -38,7 +39,7 @@ interface SearchCaptions {
     highlights: string;
 }
 
-export interface TextSearchResult extends SearchResult {
+export interface TextSearchResult1 extends SearchResult {
     id: string;
     title: string;
     titleVector: number[];
@@ -46,6 +47,14 @@ export interface TextSearchResult extends SearchResult {
     contentVector: number[];
     category?: string;
     url?: string;
+}
+
+export interface TextSearchResult extends SearchResult {
+    id: string;
+    name: string;
+    descriptionContent: string;
+    projectOverviewContent: string;
+    managingTeam: string;
 }
 
 export interface ImageSearchResult extends SearchResult {
@@ -57,6 +66,7 @@ export interface ImageSearchResult extends SearchResult {
 export interface ResultCard {
     approachKey: string;
     searchResults: TextSearchResult[];
+    resultCount: number;
 }
 
 export interface AxiosErrorResponseData {

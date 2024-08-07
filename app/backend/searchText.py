@@ -1,6 +1,6 @@
 from typing import Any
 from azure.search.documents.aio import SearchClient
-from azure.search.documents.models import QueryType, QueryCaptionType, QueryAnswerType
+from azure.search.documents.models import QueryType, QueryCaptionType, QueryAnswerType, VectorQuery, VectorizedQuery
 
 
 class SearchText:
@@ -18,11 +18,11 @@ class SearchText:
         k: int | None = None,
         filter: str | None = None,
         query_vector: list[float] | None = None,
-        data_set: str = "sample"
+        data_set: str = "investment-20240726"
     ):
         # Vectorize query
         query_vector = query_vector if use_vector_search else None
-        vector_fields = "contentVector" if use_vector_search else None
+        vector_fields = "AnalysisAndRecommendationVector,DescriptionVector,ProjectOverviewVector,StrategicFitVector" if use_vector_search and "investment" in data_set else None
         k_vector = k if use_vector_search else None
 
         # Set text query for no-vector, semantic and 'Hybrid' searches
@@ -31,17 +31,12 @@ class SearchText:
             if not use_vector_search or use_hybrid_search or use_semantic_ranker
             else None
         )
-        k_text = (
-            k
-            if not use_vector_search or use_hybrid_search or use_semantic_ranker
-            else None
-        )
 
         # Semantic ranker options
         query_type = QueryType.SEMANTIC if use_semantic_ranker else None
         query_language = "en-us" if use_semantic_ranker else None
         semantic_configuration_name = (
-            "my-semantic-config" if use_semantic_ranker else None
+            "default" if use_semantic_ranker else None
         )
 
         # Semantic caption options
@@ -50,13 +45,15 @@ class SearchText:
         highlight_pre_tag = "<b>" if use_semantic_captions else None
         highlight_post_tag = "</b>" if use_semantic_captions else None
 
-        # ACS search query
+        vector_queries = [VectorizedQuery(vector=query_vector, k_nearest_neighbors=k_vector, fields=vector_fields)] if use_vector_search else None
+        # AZS search query
+
+
         search_results = await self.search_client.search(
             query_text,
-            vector=query_vector,
-            vector_fields=vector_fields,
-            top_k=k_vector,
-            top=k_text,
+            vector_queries=vector_queries,
+            top=10,
+            include_total_count=True,
             select=select,
             filter=filter,
             query_type=query_type,
@@ -68,8 +65,11 @@ class SearchText:
             highlight_post_tag=highlight_post_tag,
         )
 
+        count = await search_results.get_count()
+        
         results = []
         async for r in search_results:
+            
             captions = (
                 list(
                     map(
@@ -81,21 +81,26 @@ class SearchText:
                 else None
             )
 
-            if data_set == "sample":
+            if "investment" in data_set:
+
+                managingTeamsArr =  [r["ManagingTeamL1"], r["ManagingTeamL2"], r["ManagingTeamL3"], r["ManagingTeamL4"]]
+                filteredArr = [i for i in managingTeamsArr if i is not None]
+                managingTeam1 = '/'.join(filteredArr)
                 results.append(
                     {
                         "@search.score": r["@search.score"],
                         "@search.reranker_score": r["@search.reranker_score"],
                         "@search.captions": captions,
-                        "id": r["id"],
-                        "title": r["title"],
-                        "titleVector": r["titleVector"],
-                        "content": r["content"],
-                        "contentVector": r["contentVector"],
-                        "category": r["category"],
+                        "id": r["InvestmentId"], 
+                        "name": r["Name"],
+                        "descriptionContent": r["Description"],
+                        "projectOverviewContent": r["ProjectOverview"],
+                        "managingTeam": managingTeam1
                     }
                 )
-            elif data_set == "wikipedia":
+
+## CLM this to change
+            elif "organization" in data_set:
                 results.append(
                     {
                         "@search.score": r["@search.score"],
@@ -113,4 +118,5 @@ class SearchText:
 
         return {
             "results": results,
+            "count": count
         }

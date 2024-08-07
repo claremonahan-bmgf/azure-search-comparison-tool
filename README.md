@@ -2,22 +2,14 @@
 
 This repository contains a React application that demonstrates the Azure AI Search Comparison Tool. This tool provides a web interface for visualizing different retrieval modes available in Azure AI Search. Additionally, the tool supports image search using text-to-image and image-to-image search functionalities. It leverages Azure OpenAI for text embeddings and Azure AI Vision API for image embeddings.
 
-You can find a live demo at [aka.ms/VectorSearchDemo](https://aka.ms/VectorSearchDemo/)
-
-![Vector Search Video](https://github.com/Azure-Samples/azure-search-comparison-tool/blob/main/public/VectorGIF.gif)
-
 ## Features
 
-- Generate text embeddings using Azure OpenAI and insert them into a vector store in Azure AI Search.
 - Perform vector search queries on text data, including vector searches with metadata filtering and hybrid (text + vectors) search.
-- Generate image embeddings using Azure AI Vision API.
-- Perform text-to-image and image-to-image vector searches.
 
 ## Prerequisites
 
 - An Azure subscription with access to Azure AI Search and Azure AI Services.
 - Access to Azure OpenAI for generating text embeddings.
-- Access to Azure AI Vision for generating image embeddings.
 
 To run this demo locally, you will need the following:
 
@@ -46,12 +38,9 @@ Execute the following commands, if you don't have any pre-existing Azure service
 ### Using existing resources
 
 1. Run `azd env set AZURE_OPENAI_SERVICE {Name of existing Azure OpenAI service}`
-1. Run `azd env set AZURE_OPENAI_DEPLOYMENT_NAME {Name of existing embedding model deployment}`. Only needed if your deployment is not the default 'embeddings'. Typically this'll be a text-embedding-ada-002 model.
+1. Run `azd env set AZURE_OPENAI_DEPLOYMENT_NAME {Name of existing embedding model deployment}`. Only needed if your deployment is not the default 'embeddings'. Typically this'll be a text-embedding-3-large model.
 1. Run `azd env set AZURE_SEARCH_SERVICE_ENDPOINT {Endpoint of existing Azure AI Search service}`
 1. Run `azd env set AZURE_SEARCH_TEXT_INDEX_NAME {Name of existing Azure AI Search index with text}`
-1. Run `azd env set AZURE_SEARCH_IMAGE_INDEX_NAME {Name of existing Azure AI Search index with images}`
-1. Run `azd env set AZURE_VISIONAI_ENDPOINT {Endpoint of existing Azure AI Vision}`
-1. Run `azd env set AZURE_VISIONAI_KEY {Key of existing Azure AI Vision}`
 1. Run `azd up`
 
 ### Deploying again
