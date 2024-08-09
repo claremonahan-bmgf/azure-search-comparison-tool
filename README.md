@@ -40,10 +40,13 @@ Execute the following commands, if you don't have any pre-existing Azure service
 1. Run `azd env set AZURE_OPENAI_SERVICE {Name of existing Azure OpenAI service}`
 1. Run `azd env set AZURE_OPENAI_DEPLOYMENT_NAME {Name of existing embedding model deployment}`. Only needed if your deployment is not the default 'embeddings'. Typically this'll be a text-embedding-3-large model.
 1. Run `azd env set AZURE_SEARCH_SERVICE_ENDPOINT {Endpoint of existing Azure AI Search service}`
-1. Run `azd env set AZURE_SEARCH_TEXT_INDEX_NAME {Name of existing Azure AI Search index with text}`
+1. Run `azd env set AZURE_SEARCH_INVESTMENT_INDEX_NAME_CURR {Name of existing Azure AI Search index with investment data}`
+1. Run `azd env set AZURE_SEARCH_INVESTMENT_INDEX_NAME_PREV {Name of existing Azure AI Search index with investment data from previous data refresh}`
 1. Run `azd up`
 
 ### Deploying again
+
+NOTE: this deployment stategy is subject to change as it is highly challenging to run cli based deployments in the ACG subscription.
 
 If you've only changed the backend/frontend code in the `app` folder, then you don't need to re-provision the Azure resources. You can just run:
 
@@ -83,13 +86,6 @@ In a second terminal run the frontend:
 1. The Azure Search Comparison Tool allows you to search for text queries by entering them in the search bar and pressing 'Enter'. The application will generate text embeddings using Azure OpenAI and perform vector searches on the data stored in Azure AI Search.
 
 1. The search results will be displayed as cards. Feel free to click on the settings icon to explore the different query approaches such as Hybrid Search and Hybrid Search with Semantic Ranking, Captions, and Highlights powered by Microsoft Bing. Note that you will need to enroll in a Semantic Plan in your Azure AI Search service to use this feature. See [Semantic search](https://learn.microsoft.com/azure/search/semantic-search-overview).
-
-## Conclusion
-
-We hope you find this repository useful for demoing Vector search and exploring the different features Azure AI Search has to offer. Feel free to explore and customize the code to meet your specific requirements.  
-If you have any questions or suggestions, please feel free to open an issue and we'll be happy to help.
-
-Happy searching!
 
 ## References
 
